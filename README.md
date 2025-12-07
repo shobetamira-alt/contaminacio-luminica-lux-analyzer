@@ -6,8 +6,8 @@ Programa per al tractament de mesures de luminància (lux).
 Objectiu:
     - Llegir un conjunt de mesures de luminància (en lux).
     - Calcular la mitjana.
-    - Calcular la desviació estàndard de la mitjana (incertesa experimental).
-    - Combinar-la amb la incertesa instrumental.
+    - Calcular la desviació estàndard de la mitjana (error experimental).
+    - Combinar-la amb l'error instrumental.
     - Arrodonir automàticament valor i error segons xifres significatives.
     - Mostrar el resultat final com: X = (valor ± error) lux.
 
@@ -15,12 +15,12 @@ Autor: Amira
 Llenguatge: Python 3.12
 Llibreria usada: math
 Unitats: lux
-σ_instr (incertesa instrumental estàndard): 0.1 lux
+σ_instr (error instrumental estàndard): 0.1 lux
 """
 
 import math
 
-# Incertesa instrumental (es pot modificar segons l'instrument real)
+# Error instrumental (es pot modificar segons l'instrument real)
 SIGMA_INSTR = 0.1  # lux
 
 
@@ -32,7 +32,7 @@ def llegir_nombre(missatge: str) -> float:
             valor = float(entrada)
             return valor
         except ValueError:
-            print("❌ Si us plau, introdueix un valor numèric vàlid.")
+            print("Si us plau, introdueix un valor numèric vàlid.")
 
 
 def llegir_enter_positiu(missatge: str) -> int:
@@ -44,13 +44,13 @@ def llegir_enter_positiu(missatge: str) -> int:
             if n > 0:
                 return n
             else:
-                print("❌ El nombre de mesures ha de ser un enter positiu.")
+                print(" El nombre de mesures ha de ser un enter positiu.")
         except ValueError:
-            print("❌ Si us plau, introdueix un nombre enter vàlid.")
+            print("Si us plau, introdueix un nombre enter vàlid.")
 
 
 def llegir_mesures(n: int) -> list[float]:
-    """Llegeix N mesures de luminància en lux."""
+    """Llegeix N mesures en lux."""
     mesures = []
     print(f"\nIntrodueix les {n} mesures en lux:")
     for i in range(1, n + 1):
@@ -73,9 +73,9 @@ def calcular_desviacio_estandard(mesures: list[float], mitjana: float) -> float:
     return math.sqrt(suma / (n - 1))
 
 
-def calcular_incertesa_experimental_mesura(mesures: list[float]) -> float:
+def calcular_error_experimental_mesura(mesures: list[float]) -> float:
     """
-    Calcula la incertesa experimental de la mitjana:
+    Calcula l'error experimental de la mitjana:
     σ_exp = s / sqrt(N), on s és la desviació estàndard mostral.
     """
     n = len(mesures)
@@ -86,9 +86,9 @@ def calcular_incertesa_experimental_mesura(mesures: list[float]) -> float:
     return s / math.sqrt(n)
 
 
-def combinar_incerteses(sigma_exp: float, sigma_instr: float) -> float:
+def combinar_error(sigma_exp: float, sigma_instr: float) -> float:
     """
-    Combina la incertesa experimental amb la instrumental:
+    Combina l'error experimental amb la instrumental:
     σ_total = sqrt(σ_exp^2 + σ_instr^2)
     """
     return math.sqrt(sigma_exp**2 + sigma_instr**2)
@@ -103,7 +103,7 @@ def arrodonir_valor_i_error(valor: float, error: float) -> tuple[float, float]:
       - El valor es redueix als mateixos decimals que l'error.
     """
     if error == 0:
-        # Cas patològic: totes les mesures iguals i sense incertesa instrumental
+        # Cas: totes les mesures iguals i sense error instrumental
         return round(valor, 3), 0.0
 
     # Magnitud de l'error (exponent en base 10)
@@ -113,9 +113,6 @@ def arrodonir_valor_i_error(valor: float, error: float) -> tuple[float, float]:
     primer_digit = error / factor
     error_arrodonit = round(primer_digit) * factor
 
-    # Nombre de decimals a mostrar
-    # Exemple: error = 0.12  -> exponent = -1  -> decimals = 1
-    #          error = 0.007 -> exponent = -3  -> decimals = 3
     if error_arrodonit != 0:
         decimals = max(0, -math.floor(math.log10(abs(error_arrodonit))))
     else:
@@ -125,7 +122,6 @@ def arrodonir_valor_i_error(valor: float, error: float) -> tuple[float, float]:
     error_arrodonit = round(error_arrodonit, decimals)
 
     return valor_arrodonit, error_arrodonit
-
 
 def main():
     print("=== Programa de tractament de mesures de luminància (lux) ===\n")
@@ -140,10 +136,10 @@ def main():
     mitjana = calcular_mitjana(mesures)
 
     # 4. Incertesa experimental de la mitjana
-    sigma_exp = calcular_incertesa_experimental_mesura(mesures)
+    sigma_exp = calcular_error_experimental_mesura(mesures)
 
     # 5. Combinació amb la incertesa instrumental
-    sigma_total = combinar_incerteses(sigma_exp, SIGMA_INSTR)
+    sigma_total = combinar_error(sigma_exp, SIGMA_INSTR)
 
     # 6. Arrodoniment segons l'ordre de magnitud de l'error
     valor_final, error_final = arrodonir_valor_i_error(mitjana, sigma_total)
@@ -152,9 +148,9 @@ def main():
     print("\n--- RESULTATS ---")
     print(f"Nombre de mesures (N): {n}")
     print(f"Mitjana (no arrodonida): {mitjana:.6f} lux")
-    print(f"Incertesa experimental de la mitjana: {sigma_exp:.6f} lux")
-    print(f"Incertesa instrumental: {SIGMA_INSTR:.6f} lux")
-    print(f"Incertesa total (no arrodonida): {sigma_total:.6f} lux")
+    print(f"Error experimental de la mitjana: {sigma_exp:.6f} lux")
+    print(f"Error instrumental: {SIGMA_INSTR:.6f} lux")
+    print(f"Error total (no arrodonit): {sigma_total:.6f} lux")
 
     print("\nResultat final:")
     print(f"X = ({valor_final} ± {error_final}) lux")
